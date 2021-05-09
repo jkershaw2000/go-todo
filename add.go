@@ -2,10 +2,13 @@ package main
 
 import "fmt"
 
-func add(listName string, itemDescriptions []string, forceCreate bool) {
+func add(listName string, priority int, itemDescription string, forceCreate bool) {
 	jsonLists := openTodoLists()
-	newItems := createItems(itemDescriptions)
-
+	// Send as slices for convienience
+	newItems := createItems([]string{itemDescription}, []int{priority})
+	if listName == "zzDEFAULTzz" {
+		listName = globalConfig.CurrentList
+	}
 	var listExsists bool
 	for i, list := range jsonLists {
 		if listName == list.Name {

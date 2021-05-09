@@ -15,26 +15,32 @@ func Find(slice []string, val string) (int, bool) {
 	return -1, false
 }
 
-func createItems(itemDescription []string) []item {
+// createItems makes the item struct to be inserted into the list
+// Takes the descriptors([]string) and priorities([]int) and returns []item
+func createItems(itemDescription []string, priorities []int) []item {
 	var newItems []item
-	for _, itemDesc := range itemDescription {
+	for i, itemDesc := range itemDescription {
 
+		var priority priority = priority(priorities[i])
 		newItem := item{
 			Description: itemDesc,
 			Completed:   false,
-			Priority:    0,
+			Priority:    priority,
 		}
 		newItems = append(newItems, newItem)
 	}
 	return newItems
 }
 
+// openTodoLists open the json todo list file and retunrns a struct containg each list indivdualy
 func openTodoLists() []list {
 	var jsonLists []list
 	jsonContent, _ := ioutil.ReadFile(globalConfig.SaveLocation)
 	json.Unmarshal([]byte(jsonContent), &jsonLists)
 	return jsonLists
 }
+
+// saveTodoLists saves the todo lists to a JSON format that can be recovered post termination for future use
 func saveTodoLists(jsonLists []list) {
 	// Marshals struct into json to save
 	bytes, err := json.Marshal(jsonLists)
@@ -48,8 +54,8 @@ func saveTodoLists(jsonLists []list) {
 	}
 }
 
+// saveConfig savest the global configuration as JSON so that can be recovered post termination for future use
 func saveConfig(config config) {
-	fmt.Print(config.CurrentList)
 	// Marshals struct into json to save
 	bytes, err := json.Marshal(config)
 	if err != nil {

@@ -29,10 +29,43 @@ type list struct {
 type item struct {
 	Description string
 	Completed   bool
-	Priority    int
+	Priority    priority
 }
 
+// ENUM for priorities
+type priority int
+
+// ENUM values for priorities
+const (
+	LOW priority = iota
+	NORMAL
+	HIGH
+)
+
+// string allows for printing the string version of the priority ENUM as a type method
+func (p priority) string() string {
+	return [...]string{"LOW", "NORMAL", "HIGH"}[p]
+}
+
+// enumIndex returns an integer value of the priority ENUM for use when type signature must match
+// Simple casting of int type
+func (p priority) enumIndex() int {
+	return int(p)
+}
+
+// main function for running the program. For more infomration on each command use `todo <command> --help`
+// Available commands:
+// add
+// create
+// clean
+// complete
+// current
+// edit
+// list
+// remove
+// switch
 func main() {
+	//currentList := string(globalConfig.CurrentList)
 	commando.
 		SetExecutableName("todo").
 		SetVersion("0.1").
@@ -44,14 +77,15 @@ func main() {
 		SetDescription("Add an item to the specified list.\nIf none specified adds to current.").
 		SetShortDescription("Add an item to list").
 		AddArgument("item...", "Item(s) to be added to list", "").
-		AddFlag("list,l", "Specify what list the item(s) should be added to", commando.String, globalConfig.CurrentList).
+		AddFlag("list,l", "Specify what list the item(s) should be added to", commando.String, "zzDEFAULTzz").
+		AddFlag("priority, p", "Specify what the priorty is, HIGH(2), NORMAL(1) or LOW(0)", commando.Int, 1).
 		AddFlag("force,f", "Create a list of the specified name if it doesn't exsits.", commando.Bool, nil).
 		SetAction(func(args map[string]commando.ArgValue, flags map[string]commando.FlagValue) {
 			list, _ := flags["list"].GetString()
+			priority, _ := flags["priority"].GetInt()
 			create, _ := flags["force"].GetBool()
-			items := strings.Split(args["item"].Value, ",")
-
-			add(list, items, create)
+			item := args["item"].Value
+			add(list, priority, item, create)
 		})
 
 	commando.
@@ -123,6 +157,9 @@ func main() {
 	commando.Parse(nil)
 }
 
+// setup configuers the enviroment for use.
+// If already exsits gets settings from the configuration file and loads them.
+// If any files are missing will create a default version in the home directory/.todo
 func setup() {
 	savePath, _ = homedir.Dir()
 	savePath += "/.todo/"
